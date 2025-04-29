@@ -1,0 +1,57 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Braces Tracker</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fef9f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff8a65;
+      margin-bottom: 30px;
+      font-size: 7vw;
+      text-align: center;
+    }
+    button {
+      background-color: #ffd3b6;
+      border: none;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 5vw;
+      min-width: 200px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #ffb88c;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>🦷 Braces Tracker</h1>
+  <button onclick="goToRecord()">📝 Record</button>
+  <button onclick="goToGraph()">📈 Graph</button>
+  <script>
+    function goToRecord() {
+      window.location.href = "record.html";
+    }
+    function goToGraph() {
+      window.location.href = "graph.html";
+    }
+  </script>
+</body>
+</html>

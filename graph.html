@@ -1,0 +1,188 @@
+<!-- graph.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Braces Progress Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fef9f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+      color: #ff8a65;
+      margin-bottom: 10px;
+      font-size: 7vw;
+      text-align: center;
+      animation: bounce 2s infinite alternate;
+    }
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-5px); }
+    }
+    canvas {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin: 20px 0;
+      width: 90%;
+      max-width: 600px;
+    }
+    .stats {
+      font-size: 4vw;
+      margin-bottom: 20px;
+      color: #555;
+      text-align: center;
+      max-width: 90%;
+    }
+    button {
+      background-color: #ffd3b6;
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 5vw;
+      min-width: 200px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background-color: #ffb88c;
+      transform: scale(1.05);
+    }
+    .confirm-box {
+      display: none;
+      background: white;
+      border: 2px solid #ff8a65;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -30%);
+      z-index: 100;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+  <h1>📈 Progress Overview</h1>
+  <div class="stats" id="stats"></div>
+  <canvas id="progressChart"></canvas>
+  <div style="margin-top: 10px;">
+    <button onclick="goBack()">🏠 Back to Menu</button>
+    <button onclick="exportData()">📄 Export Data</button>
+  </div>
+  <div style="margin-top: 20px;">
+    <button onclick="showConfirm()">🗑️ Delete All Data</button>
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <div class="confirm-box" id="confirmBox">
+    <p>⚠️ Are you absolutely, positively, crazily sure you want to wipe EVERYTHING?<br>This is the nuclear button! 💥</p>
+    <button onclick="cancelReset()">Cancel</button>
+    <button onclick="confirmReset()">Confirm Reset</button>
+  </div>
+  <script>
+    let ctx = document.getElementById('progressChart').getContext('2d');
+    let data = JSON.parse(localStorage.getItem('bracesRecords')) || [];
+    if (data.length === 0) {
+      document.getElementById('stats').innerHTML = "📫 No data recorded yet. Start your legendary journey!";
+    } else {
+      let dates = data.map(d => d.date);
+      let painLevels = data.map(d => d.painLevel);
+      let offTimes = data.map(d => Math.round(d.offTimeUsed/60));
+      let totalPain = painLevels.reduce((a,b) => a + parseInt(b), 0);
+      let avgPain = (totalPain / painLevels.length).toFixed(1);
+      let totalBraces = [...new Set(data.map(d => d.braceNumber))].length;
+      document.getElementById('stats').innerHTML = `
+        <strong>Total Days Recorded:</strong> ${data.length}<br>
+        <strong>Average Pain Level:</strong> ${avgPain}<br>
+        <strong>Total Different Braces:</strong> ${totalBraces}<br>
+        ${data.length >= 10 ? '<br><em>🌟 You are officially a Braces-Wearing WARRIOR. 🌟</em>' : ''}
+      `;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: 'Pain Level',
+              data: painLevels,
+              borderColor: '#ff8a65',
+              backgroundColor: 'rgba(255,138,101,0.2)',
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Off-time Used (minutes)',
+              data: offTimes,
+              borderColor: '#4db6ac',
+              backgroundColor: 'rgba(77,182,172,0.2)',
+              borderWidth: 2,
+              tension: 0.3,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+    function goBack() {
+      window.location.href = "index.html";
+    }
+    function exportData() {
+      const records = localStorage.getItem('bracesRecords');
+      if (!records) {
+        alert('📫 No data to export yet, brave warrior!');
+        return;
+      }
+      const blob = new Blob([records], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bracesRecords_backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('🎉 Data exported like a CHAMPION ready to conquer the galaxy!');
+    }
+    function showConfirm() {
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('confirmBox').style.display = 'block';
+    }
+    function cancelReset() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('confirmBox').style.display = 'none';
+    }
+    function confirmReset() {
+      localStorage.removeItem('bracesRecords');
+      alert('🖑 KABOOM! Data reset complete. Your destiny starts anew!');
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>

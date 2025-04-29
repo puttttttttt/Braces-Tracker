@@ -1,0 +1,166 @@
+
+<!-- record.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Record Today's Braces Info</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fef9f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    h1 {
+      color: #ff8a65;
+      font-size: 7vw;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    label, .timer, .pain-display {
+      font-size: 5vw;
+      color: #555;
+      margin-top: 10px;
+      text-align: center;
+    }
+    input, textarea {
+      width: 90%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fff8f0;
+      font-size: 4vw;
+    }
+    input[type="range"] {
+      width: 90%;
+    }
+    textarea {
+      height: 100px;
+      resize: none;
+    }
+    button {
+      background-color: #ffd3b6;
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 5vw;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #ffb88c;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>📝 Record Info</h1>
+  <label for="braceNumber">Brace Number:</label>
+  <input type="number" id="braceNumber" placeholder="Which aligner today?">
+  <label for="painLevel">Pain Strength (0-10):</label>
+  <input type="range" id="painLevel" min="0" max="10" value="0" step="1" oninput="updatePainValue(this.value)">
+  <div class="pain-display" id="painValueDisplay">0 😁</div>
+  <div class="timer" id="timerDisplay">02:00:00</div>
+  <button id="startBtn">▶️ Start</button>
+  <button id="pauseBtn">⏸️ Pause</button>
+  <button id="resetBtn">🔄 Reset</button>
+  <label for="journal">Journal Entry:</label>
+  <textarea id="journal" placeholder="Today felt like..."></textarea>
+  <button id="saveBtn">💾 Save Record</button>
+  <button id="backBtn">🏠 Back</button>
+  <script>
+    let timerDuration = 2 * 60 * 60;
+    let timer;
+    let running = false;
+    function formatTime(seconds) {
+      const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(seconds % 60).padStart(2, '0');
+      return `${hrs}:${mins}:${secs}`;
+    }
+    function updateDisplay() {
+      document.getElementById('timerDisplay').textContent = formatTime(timerDuration);
+    }
+    function startTimer() {
+      if (!running) {
+        running = true;
+        timer = setInterval(() => {
+          if (timerDuration > 0) {
+            timerDuration--;
+            updateDisplay();
+          } else {
+            clearInterval(timer);
+            alert('⏰ Time’s up! You better slap those braces back in!! 🚀');
+          }
+        }, 1000);
+      }
+    }
+    function pauseTimer() {
+      running = false;
+      clearInterval(timer);
+    }
+    function resetTimer() {
+      pauseTimer();
+      timerDuration = 2 * 60 * 60;
+      updateDisplay();
+    }
+    function updatePainValue(val) {
+      const emojis = ["😁", "😊", "🙂", "😌", "😐", "😑", "😣", "😖", "😫", "😢", "😭"];
+      document.getElementById('painValueDisplay').innerText = `${val} ${emojis[val]}`;
+    }
+    function saveRecord() {
+      const braceNumberInput = document.getElementById('braceNumber').value;
+      const painLevel = document.getElementById('painLevel').value;
+      const journal = document.getElementById('journal').value;
+      const offTimeUsed = 2 * 60 * 60 - timerDuration;
+      if (!braceNumberInput || painLevel === "") {
+        alert("⚡ Whoa! Fill in both the brace number AND pain level, warrior!");
+        return;
+      }
+      let currentBrace = parseInt(braceNumberInput);
+      let records = JSON.parse(localStorage.getItem('bracesRecords')) || [];
+      let previousBrace = records.length > 0 ? parseInt(records[records.length - 1].braceNumber) : null;
+      if (previousBrace !== null && Math.abs(currentBrace - previousBrace) >= 2) {
+        if (!confirm("😲 WHOA, big jump detected! You sure you switched a quantum number of braces overnight?! 🚀 Check again, buddy!")) {
+          return;
+        }
+      }
+      const today = new Date().toISOString().split('T')[0];
+      const record = {
+        date: today,
+        braceNumber: currentBrace,
+        painLevel,
+        journal,
+        offTimeUsed
+      };
+      records.push(record);
+      localStorage.setItem('bracesRecords', JSON.stringify(records));
+      alert('🎉 RECORD SAVED! YOU\'RE A BRACES-WEARING BEAST!! 🦷🔥');
+      resetTimer();
+      document.getElementById('braceNumber').value = "";
+      document.getElementById('painLevel').value = "0";
+      updatePainValue(0);
+      document.getElementById('journal').value = "";
+    }
+    function goBack() {
+      window.location.href = "index.html";
+    }
+    document.getElementById('startBtn').addEventListener('click', startTimer);
+    document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
+    document.getElementById('resetBtn').addEventListener('click', resetTimer);
+    document.getElementById('saveBtn').addEventListener('click', saveRecord);
+    document.getElementById('backBtn').addEventListener('click', goBack);
+    updateDisplay();
+  </script>
+</body>
+</html>
